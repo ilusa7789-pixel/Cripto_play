@@ -33,7 +33,6 @@
             position: absolute;
             width: 40px; height: 40px;
             opacity: 0.6;
-            /* Плавное парение */
             animation: float 6s infinite ease-in-out alternate;
         }
 
@@ -59,6 +58,7 @@
         .menu h1 {
             font-size: 24px;
             margin-bottom: 30px;
+            font-weight: bold;
         }
 
         .buttons {
@@ -93,6 +93,7 @@
             font-size: 22px;
             color: #ff4d6d;
             padding: 20px;
+            font-weight: bold;
         }
 
         /* Контейнер с плывущим текстом */
@@ -111,19 +112,18 @@
             text-align: center;
             font-size: 20px;
             line-height: 1.6;
-            /* Текст изначально спрятан снизу за экраном */
+            font-weight: bold; /* Текст стал жирным */
             transform: translateY(100vh);
         }
 
-        /* Анимация прокрутки: 25 секунд (средняя скорость чтения) */
+        /* Анимация полной прокрутки текста вверх за экран */
         .scroll-active {
-            animation: scrollUp 25s linear forwards;
+            animation: scrollUp 28s linear forwards;
         }
 
         @keyframes scrollUp {
             0% { transform: translateY(100vh); }
-            /* Текст останавливается по центру экрана */
-            100% { transform: translateY(15vh); } 
+            100% { transform: translateY(-100%); } /* Полный уход за верхний край */
         }
 
         .signature {
@@ -132,6 +132,28 @@
             font-style: italic;
             color: #ff4d6d;
             font-size: 22px;
+        }
+
+        /* Финальный экран, который появится по центру */
+        .final-screen {
+            display: none;
+            position: relative;
+            z-index: 10;
+            text-align: center;
+            padding: 20px;
+            animation: fadeIn 1.5s ease-in-out forwards;
+        }
+
+        .final-screen h1 {
+            font-size: 32px;
+            color: #ff4d6d;
+            font-weight: bold;
+            text-shadow: 0 0 15px rgba(255, 77, 109, 0.4);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.8); }
+            to { opacity: 1; transform: scale(1); }
         }
     </style>
 </head>
@@ -148,18 +170,23 @@
     </div>
 
     <div class="reject-screen" id="reject-screen">
-        <h2>Извините, но вы не Таня. До свидания!</h2>
+        <h2>Извините, но вы не Таня. До свидания! 👋🛑</h2>
     </div>
 
     <div class="scroll-container" id="scroll-container">
         <div class="scroll-text" id="scroll-text">
-            <p>Поздравляю тебя с днём рождения, желаю тебе всего самого хорошего!</p>
-            <p>Желать счастья, здоровья — это как-то банально, ну конечно это всё тоже должно быть. Но желаю тебе, если сказать в общем-то, удачи в личной жизни.</p>
-            <p>Поступить в колледж + чтобы там всё в кайф было, ну а после этого сначала поработать годика 2 на кого-то, получить опыт, а потом чтобы все на тебя работали.</p>
-            <p>Желаю построить просто наилучшую карьеру, возможно будет нелегко, но у тебя всё получится, я тебя знаю.</p>
-            <p>Ну и конечно же с семьёй чтобы тебе повезло))) 😉😉😉</p>
-            <p class="signature">От Ильи Руслановича</p>
+            <p>Поздравляю тебя с днём рождения! 🎉🥳 Наслаждайся каждым моментом и улыбайся! ✨</p>
+            <p>Желаю тебе всего самого хорошего! 🎁 Желать счастья, здоровья — это как-то банально, ну конечно это всё тоже должно быть. ❤️</p>
+            <p>Но желаю тебе, если сказать в общем-то, удачи в личной жизни! 💞🥰</p>
+            <p>Поступить в колледж 🎓 + чтобы там всё в кайф было! 🔥 Ну а после этого сначала поработать годика 2 на кого-то, получить неоценимый опыт 💼, а потом чтобы абсолютно все на тебя работали! 👑🕶️</p>
+            <p>Желаю построить просто наилучшую карьеру! 🚀📈 Возможно будет нелегко, но у тебя всё обязательно получится, я тебя знаю! 💪🎯</p>
+            <p>Ну и конечно же с семьёй чтобы тебе крупно повезло))) 😉🌟🏡</p>
+            <p class="signature">От Ильи Руслановича 🌹⭐</p>
         </div>
+    </div>
+
+    <div class="final-screen" id="final-screen">
+        <h1>С днём рождения, Таня! 🎉🎂🥳🍾</h1>
     </div>
 
     <script>
@@ -171,7 +198,6 @@
         // Генерация "ручных" сердечек
         const heartsContainer = document.getElementById('hearts-container');
         
-        // SVG код сердечка, стилизованный под небрежный рисунок маркером (fill="none")
         const heartSVG = `
             <svg viewBox="0 0 100 100" class="drawn-heart">
                 <path d="M 50 85 C 50 85 10 55 15 25 C 18 10 35 10 50 25 C 65 10 82 10 85 25 C 90 55 50 85 50 85 Z"
@@ -179,17 +205,14 @@
             </svg>
         `;
 
-        // Создаем 15 случайных сердечек по всему экрану
         for (let i = 0; i < 15; i++) {
             let heart = document.createElement('div');
             heart.classList.add('heart');
             heart.innerHTML = heartSVG;
             
-            // Рандомная позиция
             heart.style.left = Math.random() * 90 + 'vw';
             heart.style.top = Math.random() * 90 + 'vh';
             
-            // Рандомная анимация для естественности
             heart.style.animationDelay = Math.random() * 5 + 's';
             heart.style.animationDuration = (Math.random() * 3 + 4) + 's';
             heart.style.transform = 'rotate(' + (Math.random() * 40 - 20) + 'deg)';
@@ -197,18 +220,17 @@
             heartsContainer.appendChild(heart);
         }
 
-        // Логика переключения экранов
         const startMenu = document.getElementById('start-menu');
         const rejectScreen = document.getElementById('reject-screen');
         const scrollContainer = document.getElementById('scroll-container');
         const scrollText = document.getElementById('scroll-text');
+        const finalScreen = document.getElementById('final-screen');
 
         // Кнопка "Да"
         document.getElementById('btn-yes').addEventListener('click', () => {
             startMenu.style.display = 'none'; 
             scrollContainer.style.display = 'block'; 
             
-            // Таймер в 100мс нужен, чтобы браузер успел отрисовать display: block до запуска CSS-анимации
             setTimeout(() => {
                 scrollText.classList.add('scroll-active');
             }, 100);
@@ -218,6 +240,12 @@
         document.getElementById('btn-no').addEventListener('click', () => {
             startMenu.style.display = 'none';
             rejectScreen.style.display = 'block';
+        });
+
+        // Отслеживаем, когда текст закончил плыть
+        scrollText.addEventListener('animationend', () => {
+            scrollContainer.style.display = 'none'; // Скрываем уплывший текст
+            finalScreen.style.display = 'block';    // Показываем красивую надпись по центру
         });
     </script>
 </body>
