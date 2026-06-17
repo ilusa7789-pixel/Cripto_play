@@ -1,1 +1,224 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>С Днём Рождения!</title>
+    
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #121212; /* Тёмный фон */
+            color: #ffffff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden; /* Отключаем скролл, чтобы текст плыл сам */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
 
+        /* Контейнер для нарисованных сердечек */
+        .hearts-bg {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .heart {
+            position: absolute;
+            width: 40px; height: 40px;
+            opacity: 0.6;
+            /* Плавное парение */
+            animation: float 6s infinite ease-in-out alternate;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0) scale(1); }
+            100% { transform: translateY(-20px) scale(1.1); }
+        }
+
+        /* Главное меню с вопросом */
+        .menu {
+            position: relative;
+            z-index: 10;
+            background: rgba(30, 30, 30, 0.85);
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.6);
+            backdrop-filter: blur(8px);
+            width: 80%;
+            max-width: 320px;
+        }
+
+        .menu h1 {
+            font-size: 24px;
+            margin-bottom: 30px;
+        }
+
+        .buttons {
+            display: flex;
+            justify-content: space-around;
+        }
+
+        button {
+            background: #ff4d6d;
+            color: white;
+            border: none;
+            padding: 12px 35px;
+            font-size: 18px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: 0.2s;
+            font-weight: bold;
+        }
+
+        button:active { transform: scale(0.95); }
+
+        #btn-no { 
+            background: #444; 
+        }
+
+        /* Экран отказа */
+        .reject-screen {
+            display: none;
+            position: relative;
+            z-index: 10;
+            text-align: center;
+            font-size: 22px;
+            color: #ff4d6d;
+            padding: 20px;
+        }
+
+        /* Контейнер с плывущим текстом */
+        .scroll-container {
+            display: none;
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 10;
+            overflow: hidden;
+        }
+
+        .scroll-text {
+            position: absolute;
+            width: 90%;
+            left: 5%;
+            text-align: center;
+            font-size: 20px;
+            line-height: 1.6;
+            /* Текст изначально спрятан снизу за экраном */
+            transform: translateY(100vh);
+        }
+
+        /* Анимация прокрутки: 25 секунд (средняя скорость чтения) */
+        .scroll-active {
+            animation: scrollUp 25s linear forwards;
+        }
+
+        @keyframes scrollUp {
+            0% { transform: translateY(100vh); }
+            /* Текст останавливается по центру экрана */
+            100% { transform: translateY(15vh); } 
+        }
+
+        .signature {
+            margin-top: 40px;
+            font-weight: bold;
+            font-style: italic;
+            color: #ff4d6d;
+            font-size: 22px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="hearts-bg" id="hearts-container"></div>
+
+    <div class="menu" id="start-menu">
+        <h1>Ваше имя Таня?</h1>
+        <div class="buttons">
+            <button id="btn-yes">Да</button>
+            <button id="btn-no">Нет</button>
+        </div>
+    </div>
+
+    <div class="reject-screen" id="reject-screen">
+        <h2>Извините, но вы не Таня. До свидания!</h2>
+    </div>
+
+    <div class="scroll-container" id="scroll-container">
+        <div class="scroll-text" id="scroll-text">
+            <p>Поздравляю тебя с днём рождения, желаю тебе всего самого хорошего!</p>
+            <p>Желать счастья, здоровья — это как-то банально, ну конечно это всё тоже должно быть. Но желаю тебе, если сказать в общем-то, удачи в личной жизни.</p>
+            <p>Поступить в колледж + чтобы там всё в кайф было, ну а после этого сначала поработать годика 2 на кого-то, получить опыт, а потом чтобы все на тебя работали.</p>
+            <p>Желаю построить просто наилучшую карьеру, возможно будет нелегко, но у тебя всё получится, я тебя знаю.</p>
+            <p>Ну и конечно же с семьёй чтобы тебе повезло))) 😉😉😉</p>
+            <p class="signature">От Ильи Руслановича</p>
+        </div>
+    </div>
+
+    <script>
+        // Растягиваем мини-приложение на весь экран в ТГ
+        if (window.Telegram && window.Telegram.WebApp) {
+            window.Telegram.WebApp.expand();
+        }
+
+        // Генерация "ручных" сердечек
+        const heartsContainer = document.getElementById('hearts-container');
+        
+        // SVG код сердечка, стилизованный под небрежный рисунок маркером (fill="none")
+        const heartSVG = `
+            <svg viewBox="0 0 100 100" class="drawn-heart">
+                <path d="M 50 85 C 50 85 10 55 15 25 C 18 10 35 10 50 25 C 65 10 82 10 85 25 C 90 55 50 85 50 85 Z"
+                      fill="none" stroke="rgba(255, 77, 109, 0.5)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        `;
+
+        // Создаем 15 случайных сердечек по всему экрану
+        for (let i = 0; i < 15; i++) {
+            let heart = document.createElement('div');
+            heart.classList.add('heart');
+            heart.innerHTML = heartSVG;
+            
+            // Рандомная позиция
+            heart.style.left = Math.random() * 90 + 'vw';
+            heart.style.top = Math.random() * 90 + 'vh';
+            
+            // Рандомная анимация для естественности
+            heart.style.animationDelay = Math.random() * 5 + 's';
+            heart.style.animationDuration = (Math.random() * 3 + 4) + 's';
+            heart.style.transform = 'rotate(' + (Math.random() * 40 - 20) + 'deg)';
+            
+            heartsContainer.appendChild(heart);
+        }
+
+        // Логика переключения экранов
+        const startMenu = document.getElementById('start-menu');
+        const rejectScreen = document.getElementById('reject-screen');
+        const scrollContainer = document.getElementById('scroll-container');
+        const scrollText = document.getElementById('scroll-text');
+
+        // Кнопка "Да"
+        document.getElementById('btn-yes').addEventListener('click', () => {
+            startMenu.style.display = 'none'; 
+            scrollContainer.style.display = 'block'; 
+            
+            // Таймер в 100мс нужен, чтобы браузер успел отрисовать display: block до запуска CSS-анимации
+            setTimeout(() => {
+                scrollText.classList.add('scroll-active');
+            }, 100);
+        });
+
+        // Кнопка "Нет"
+        document.getElementById('btn-no').addEventListener('click', () => {
+            startMenu.style.display = 'none';
+            rejectScreen.style.display = 'block';
+        });
+    </script>
+</body>
+</html>
